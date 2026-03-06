@@ -26,8 +26,6 @@
 #define FREQ_REGISTER 0
 #define PHASE_REGISTER 0
 
-static void (*spi_write)(uint16_t);
-
 // Reset chip 
 void stop_ad9833(ad9833_t *ad9833) {
     ad9833->spi_write(CR_SEL | CR_RESET | CR_SLEEP1 | CR_SLEEP12);
