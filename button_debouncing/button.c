@@ -10,6 +10,27 @@ bool button_pressed(button_debounce_t* button_debounce, bool button_state, uint3
             button_debounce->last_edge_ms = millis;    
             button_debounce->last_state = button_state;
             button_debounce->long_press_registered = false;
+
+            // Update consecutive press counter
+            #if ENABLE_CONSECUTIVE_COUNTING
+                if (button_state) {
+                    if (millis < button_debounce->last_press_ms + BUTTON_CONSECUTIVE_PRESS_MS) {
+
+                        // Make counter start from 2
+                        if (button_debounce->consecutive_presses == 0) {
+                            button_debounce->consecutive_presses = 2;
+                        } else {
+                            button_debounce->consecutive_presses += 1;
+                        }
+
+                    } else {
+                        button_debounce->consecutive_presses = 0;
+                    }
+
+                    button_debounce->last_press_ms = millis;
+                } 
+            #endif
+
             return button_state;
         }
     }
