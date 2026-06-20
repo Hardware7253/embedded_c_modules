@@ -8,11 +8,11 @@
 
 
 // SPI TX function pointer - should not control CS
-// Parameters should be: tx_buf, tx_buf_size 
+// Parameters should be: tx_buf, tx_buf_len
 typedef void (*flash_tx_fp)(uint8_t*, uint32_t); 
 
 // SPI RX function pointer - should not control CS
-// Parameters should be: rx_buf, rx_cnt
+// Parameters should be: rx_buf, rx_buf_len
 typedef void (*flash_rx_fp)(uint8_t*, uint32_t); 
 
 // SPI set CS function_pointer
@@ -21,9 +21,9 @@ typedef void (*flash_rx_fp)(uint8_t*, uint32_t);
 typedef void (*flash_write_cs_fp)(bool);
 
 typedef struct {
-    flash_tx_fp tx_fp;
-    flash_rx_fp rx_fp;
-    flash_write_cs_fp cs_fp;
+    flash_tx_fp tx;
+    flash_rx_fp rx;
+    flash_write_cs_fp cs;
 } w25q_t;
 
 typedef enum {

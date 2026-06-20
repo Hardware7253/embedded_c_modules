@@ -1,8 +1,5 @@
 #include "w25q.h"
 
-#define CS_IDLE_STATE 0
-#define CS_ACTIVE_STATE 1
-
 #define GET_BE_ADDR_24(address) (uint8_t)(address >> 16), (uint8_t)(address >> 8), (uint8_t)(address)
 
 // Status register bits
@@ -11,16 +8,16 @@
 // Writes a basic command
 // A basic command only contains the command byte 
 static void write_basic_command(w25q_t *w25q, uint8_t command) {
-    w25q->cs_fp(CS_ACTIVE_STATE);
-    w25q->tx_fp(&command, 1);
-    w25q->cs_fp(CS_IDLE_STATE);
+    w25q->cs(true);
+    w25q->tx(&command, 1);
+    w25q->cs(false);
 }
 
 // Initialises an empty w25q struct with function pointers
 void w25q_init(w25q_t *w25q, flash_tx_fp tx_fp, flash_rx_fp rx_fp, flash_write_cs_fp cs_fp) {
-    w25q->tx_fp = tx_fp;
-    w25q->rx_fp = rx_fp;
-    w25q->cs_fp = cs_fp;
+    w25q->tx = tx_fp;
+    w25q->rx = rx_fp;
+    w25q->cs = cs_fp;
 
     // Release power down
     write_basic_command(w25q, 0xAB);
@@ -34,10 +31,10 @@ static void send_write_enable(w25q_t *w25q) {
 // Returns the contents of the status register
 static uint8_t read_sr(w25q_t *w25q) {
     uint8_t rx = 0;
-    w25q->cs_fp(CS_ACTIVE_STATE);
-    w25q->tx_fp((uint8_t[]){0x05}, 1);
-    w25q->rx_fp(&rx, 1);
-    w25q->cs_fp(CS_IDLE_STATE);
+    w25q->cs(true);
+    w25q->tx((uint8_t[]){0x05}, 1);
+    w25q->rx(&rx, 1);
+    w25q->cs(false);
     return rx;
 }
 
@@ -62,15 +59,15 @@ void w25q_erase(w25q_t *w25q, flash_erase_t erase_type, uint32_t address) {
     wait_for_busy(w25q);
     send_write_enable(w25q);
 
-    w25q->cs_fp(CS_ACTIVE_STATE);
+    w25q->cs(true);
     if (erase_type == CHIP_ERASE) {
-        w25q->tx_fp((uint8_t[]){erase_type}, 1);
+        w25q->tx((uint8_t[]){erase_type}, 1);
     } else {
         uint8_t command_buf[] = {erase_type, GET_BE_ADDR_24(address)};
-        w25q->tx_fp(command_buf, 4);
+        w25q->tx(command_buf, 4);
     }
 
-    w25q->cs_fp(CS_IDLE_STATE);
+    w25q->cs(false);
 }
 
 // Writes a buf to a page within the flash memory
@@ -84,11 +81,11 @@ void w25q_write(w25q_t *w25q, uint32_t address, uint8_t* data_buf, uint16_t buf_
     send_write_enable(w25q);
 
     // Send page program instruction and the data to write
-    w25q->cs_fp(CS_ACTIVE_STATE);
+    w25q->cs(true);
     uint8_t command_buf[] = {0x02, GET_BE_ADDR_24(address)};
-    w25q->tx_fp(command_buf, 4);
-    w25q->tx_fp(data_buf, buf_len);
-    w25q->cs_fp(CS_IDLE_STATE);
+    w25q->tx(command_buf, 4);
+    w25q->tx(data_buf, buf_len);
+    w25q->cs(false);
 }
 
 // Read to a buffer from the flash start address
@@ -97,9 +94,9 @@ void w25q_read(w25q_t *w25q, uint32_t start_address, uint8_t* rx_buf, uint16_t r
     wait_for_busy(w25q);
 
     // Use fast read instruction to support high peripheral clock speeds
-    w25q->cs_fp(CS_ACTIVE_STATE);
+    w25q->cs(true);
     uint8_t command_buf[] = {0x0b, GET_BE_ADDR_24(start_address), 0};
-    w25q->tx_fp(command_buf, 5);
-    w25q->rx_fp(rx_buf, rx_buf_len);
-    w25q->cs_fp(CS_IDLE_STATE);
+    w25q->tx(command_buf, 5);
+    w25q->rx(rx_buf, rx_buf_len);
+    w25q->cs(false);
 }
