@@ -27,53 +27,57 @@
 #define PHASE_REGISTER 0
 
 // Reset chip 
-void stop_ad9833(ad9833_t *ad9833) {
+void stop_ad9833(const ad9833_t *ad9833) {
     ad9833->spi_write(CR_SEL | CR_RESET | CR_SLEEP1 | CR_SLEEP12);
 }
 
 // Reset chip
-inline void init_ad9833(ad9833_t *ad9833) {
+inline void init_ad9833(const ad9833_t *ad9833) {
     stop_ad9833(ad9833);
 }
 
-// Starts outputting a sinusoid, square, or triangle wave
-// Frequency should be given in Hz
-// Phase should be given in radians
-// Returns the real phase and frequency that the chip will output
-ad9833_real_values_t start_ad9833(ad9833_t *ad9833, ad9833_mode_t mode, float frequency, float phase) {
+// Starts outputting a wave with frequency, phase, and mode defined within the configuration parameter 
+// Also returns a new configuration struct, with the true output frequency and phase after quantisation
+ad9833_cfg_t start_ad9833(const ad9833_t *ad9833, const ad9833_cfg_t *cfg) {
 
-    volatile uint16_t control_reg = CR_SEL | CR_D28 |
+    uint16_t control_reg = CR_SEL | CR_D28 |
         (FREQ_REGISTER ? CR_FSELECT : 0) |
         (PHASE_REGISTER ? CR_PSELECT : 0);
 
-    switch (mode) {
+    uint8_t frequency_multiplier = 1;
+
+    switch (cfg->mode) {
         case (SINE_OUT):
             break;
         case (TRIANGLE_OUT):
             control_reg |= CR_MODE;
             break;
         case (SQUARE_OUT):
-            frequency *= 2;
+            // For the AD9833, the fequency register sets the time between sqaure wave edges (half period)
+            // So we multiply the frequency by 2 to account for this
+            frequency_multiplier = 2; 
             control_reg |= CR_OPBITEN;
             break;
     }
     ad9833->spi_write(control_reg);
 
     // Calculate and write phase register
-    uint16_t phase_reg = (phase / (2 * PI)) * BIT(12);
+    uint16_t phase_reg = (cfg->phase / (2 * PI)) * BIT(12);
     ad9833->spi_write(phase_reg + (PHASE_REGISTER ? PHASE1_SEL : PHASE0_SEL));
 
     // Calculate and write frequency register
     uint16_t register_sel = (FREQ_REGISTER ? FREQ1_SEL : FREQ0_SEL);
-    uint32_t freq_reg = (uint32_t)round((BIT(28) * frequency) / ad9833->mclk_speed);
+    uint32_t freq_reg = (uint32_t)round((BIT(28) * cfg->frequency * frequency_multiplier) / ad9833->mclk_speed);
     uint16_t lower_bits = (uint16_t)(freq_reg & 0x3FFF); // Get 14 LSB
-    uint16_t upper_bits = (uint16_t)(freq_reg >> 14); // Get 14 LSB
+    uint16_t upper_bits = (uint16_t)(freq_reg >> 14); // Get 14 MSB
     ad9833->spi_write(lower_bits | register_sel); 
     ad9833->spi_write(upper_bits | register_sel); 
 
-    ad9833_real_values_t real_values = {
-        .frequency = freq_reg * (ad9833->mclk_speed / BIT(28)),
+    // Calculate quantised frequency and phase
+    ad9833_cfg_t out_values = {
+        .frequency = (freq_reg * (ad9833->mclk_speed / BIT(28))) / frequency_multiplier,
         .phase = phase_reg * ((2 * PI) / BIT(12)),
+        .mode = cfg->mode,
     };
-    return real_values; 
+    return out_values; 
 }

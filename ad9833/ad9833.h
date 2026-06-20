@@ -21,11 +21,12 @@ typedef struct {
 } ad9833_t;
 
 typedef struct {
-    float phase;
-    float frequency;
-} ad9833_real_values_t;
+	ad9833_mode_t mode;
+    float frequency; // Hz
+    float phase; // Radians
+} ad9833_cfg_t;
 
 
-ad9833_real_values_t start_ad9833(ad9833_t *ad9833, ad9833_mode_t mode, float frequency, float phase);
-void init_ad9833(ad9833_t *ad9833);
-void stop_ad9833(ad9833_t *ad9833);
+ad9833_cfg_t start_ad9833(const ad9833_t *ad9833, const ad9833_cfg_t *cfg);
+void init_ad9833(const ad9833_t *ad9833);
+void stop_ad9833(const ad9833_t *ad9833);
