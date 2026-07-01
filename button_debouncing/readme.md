@@ -6,7 +6,7 @@ When polling the functions they will only return true once
 ## Typical usage
 ```c
 // Init
-#define ENABLE_CONSECUTIVE_COUNTING true 
+#define ENABLE_BUTTON_COUNTING true 
 button_debounce_t debounce_1 = {0};
 
 bool pin_state = (bool)HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5);

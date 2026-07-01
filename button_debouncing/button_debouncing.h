@@ -20,18 +20,18 @@
 #define BUTTON_CONSECUTIVE_PRESS_MS 250
 #endif
 
-#ifndef ENABLE_CONSECUTIVE_COUNTING 
-#define ENABLE_CONSECUTIVE_COUNTING false 
+#ifndef ENABLE_BUTTON_COUNTING 
+#define ENABLE_BUTTON_COUNTING false 
 #endif
 
 
 // Can be safely initialised with 0's
 typedef struct {
    uint32_t last_edge_ms;
-   bool last_state;
+   bool state; // Contains the debounced button state
    bool long_press_registered;
 
-   #if ENABLE_CONSECUTIVE_COUNTING
+   #if ENABLE_BUTTON_COUNTING
       uint8_t consecutive_presses;
       uint32_t last_press_ms;
    #endif
