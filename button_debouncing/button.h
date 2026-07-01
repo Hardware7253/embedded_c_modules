@@ -32,8 +32,8 @@ typedef struct {
    bool long_press_registered;
 
    #if ENABLE_CONSECUTIVE_COUNTING
-      uint32_t last_press_ms;
       uint8_t consecutive_presses;
+      uint32_t last_press_ms;
    #endif
 } button_debounce_t;
 
