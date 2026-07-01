@@ -1,4 +1,4 @@
-#include "button.h"
+#include "button_debouncing.h"
 
 // Detects if button has been pressed with debouncing
 // Will only return true on the button press rising edge
