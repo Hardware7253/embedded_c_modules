@@ -6,7 +6,6 @@ When polling the functions they will only return true once
 ## Typical usage
 ```c
 // Init
-#define ENABLE_BUTTON_COUNTING true 
 button_debounce_t debounce_1 = {0};
 
 bool pin_state = (bool)HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5);
@@ -22,3 +21,17 @@ if (debounce_1.consecutive_presses == 2) {
     (void) 0; // Double click detected
 }
 ```
+
+## Configuration
+If the default settings aren't satisfactory a configuration header can be made like so:
+
+```c
+#pragma once
+
+#define ENABLE_BUTTON_COUNTING 1 
+#define BUTTON_DEBOUNCE_MS 50
+#define BUTTON_LONG_PRESS_MS 700
+#define BUTTON_CONSECUTIVE_PRESS_MS 250
+```
+
+Just remember to include the configuration header before including the button debouncing module

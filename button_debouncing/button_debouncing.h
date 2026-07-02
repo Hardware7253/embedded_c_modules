@@ -21,9 +21,8 @@
 #endif
 
 #ifndef ENABLE_BUTTON_COUNTING 
-#define ENABLE_BUTTON_COUNTING false 
+#define ENABLE_BUTTON_COUNTING 0 
 #endif
-
 
 // Can be safely initialised with 0's
 typedef struct {
